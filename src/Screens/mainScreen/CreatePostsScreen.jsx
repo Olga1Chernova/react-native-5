@@ -1,15 +1,24 @@
-import { Text, StyleSheet, View, TouchableOpacity, TextInput, Image, Keyboard, KeyboardAvoidingView } from "react-native";
+import {
+  Text,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  TextInput,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+} from "react-native";
 import { EvilIcons } from "@expo/vector-icons";
 import { Camera } from "expo-camera";
 import { useState, useEffect } from "react";
 import { Platform } from "react-native";
 import * as Location from "expo-location";
-import PostsScreen from "../nestedScreens/PostsScreen";
+import PostsScreen from "./PostsScreen";
 
-const CreatePostsScreen = ({navigation}) => {
+const CreatePostsScreen = ({ navigation }) => {
   const [camera, setCamera] = useState(null);
-  const [photo, setPhoto] = useState('');
-  const [title, setTitle] = useState('');
+  const [photo, setPhoto] = useState("");
+  const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
   const [isFocus, setIsFocus] = useState({
@@ -57,13 +66,12 @@ const CreatePostsScreen = ({navigation}) => {
     })();
   }, []);
 
- 
-  const takePhoto = async() => {
+  const takePhoto = async () => {
     if (camera && camera.takePictureAsync) {
       const photo = await camera.takePictureAsync();
       setPhoto(photo.uri);
     }
-  }
+  };
 
   const keyboardHide = () => {
     setIsKeyboardShown(false);
@@ -71,83 +79,83 @@ const CreatePostsScreen = ({navigation}) => {
   };
 
   const reset = () => {
-    setTitle(""),
-    setLocation("")
-  }
+    setTitle(""), setLocation("");
+  };
 
-    return (
-      <View style={styles.container}>
-        <Text style={styles.post}>Create Posts</Text>
-        <View style={styles.camera_container}>
-          <Camera style={styles.camera} ref={setCamera}>
-            {photo && (
-              <View style={styles.takePhotoContainer}>
-                <Image
-                  source={{ uri: photo }}
-                  style={{ width: 343, height: 240 }}
-                />
-              </View>
-            )}
-            <TouchableOpacity style={styles.camera_btn} onPress={takePhoto}>
-              <EvilIcons
-                name="camera"
-                size={24}
-                color="#BDBDBD"
-                style={styles.camera_icon}
+  return (
+    <View style={styles.container}>
+      <Text style={styles.post}>Create Posts</Text>
+      <View style={styles.camera_container}>
+        <Camera style={styles.camera} ref={setCamera}>
+          {photo && (
+            <View style={styles.takePhotoContainer}>
+              <Image
+                source={{ uri: photo }}
+                style={{ width: 343, height: 240 }}
               />
-            </TouchableOpacity>
-          </Camera>
+            </View>
+          )}
+          <TouchableOpacity style={styles.camera_btn} onPress={takePhoto}>
+            <EvilIcons
+              name="camera"
+              size={24}
+              color="#BDBDBD"
+              style={styles.camera_icon}
+            />
+          </TouchableOpacity>
+        </Camera>
+      </View>
+      <KeyboardAvoidingView behavior={Platform.OS == "ios" ? "padding" : ""}>
+        <View style={styles.input_wrapper}>
+          <TextInput
+            placeholder="Enter post name"
+            style={styles.input}
+            value={title}
+            onFocus={() => {
+              setIsKeyboardShown(true);
+              setIsFocus({ ...isFocus, title: true });
+            }}
+            onBlur={() => {
+              setIsKeyboardShown(false);
+              Keyboard.dismiss();
+              setIsFocus({ ...isFocus, title: false });
+            }}
+            onChangeText={(value) => {
+              setTitle(value);
+            }}
+          />
         </View>
-        <KeyboardAvoidingView behavior={Platform.OS == "ios" ? "padding" : ""}>
-          <View style={styles.input_wrapper}>
-            <TextInput
-              placeholder="Enter post name"
-              style={styles.input}
-              value={title}
-              onFocus={() => {
-                setIsKeyboardShown(true);
-                setIsFocus({ ...isFocus, title: true });
-              }}
-              onBlur={() => {
-                setIsKeyboardShown(false);
-                Keyboard.dismiss();
-                setIsFocus({ ...isFocus, title: false });
-              }}
-              onChangeText={(value) => {
-                setTitle(value);
-              }}
-            />
-          </View>
-          <View style={styles.input_wrapper}>
-            <TextInput
-              placeholder="Enter post location"
-              style={styles.input}
-              value={location}
-              onFocus={() => {
-                setIsKeyboardShown(true);
-                setIsFocus({ ...isFocus, location: true });
-              }}
-              onBlur={() => {
-                setIsKeyboardShown(false);
-                Keyboard.dismiss();
-                setIsFocus({ ...isFocus, location: false });
-              }}
-              onChangeText={(value) =>
-                setLocation(value)
-              }
-            />
-          </View>
-          <TouchableOpacity style={styles.button} onPress={() => {
+        <View style={styles.input_wrapper}>
+          <TextInput
+            placeholder="Enter post location"
+            style={styles.input}
+            value={location}
+            onFocus={() => {
+              setIsKeyboardShown(true);
+              setIsFocus({ ...isFocus, location: true });
+            }}
+            onBlur={() => {
+              setIsKeyboardShown(false);
+              Keyboard.dismiss();
+              setIsFocus({ ...isFocus, location: false });
+            }}
+            onChangeText={(value) => setLocation(value)}
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
             keyboardHide();
             reset();
-            navigation.navigate("Posts", {photo});
-          }}>
-            <Text style={styles.post_btn}>Post</Text>
-          </TouchableOpacity>
-        </KeyboardAvoidingView>
-      </View>
-    );
-}
+            navigation.navigate("Posts", { photo });
+          }}
+        >
+          <Text style={styles.post_btn}>Post</Text>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+    </View>
+  );
+};
 
 export default CreatePostsScreen;
 
