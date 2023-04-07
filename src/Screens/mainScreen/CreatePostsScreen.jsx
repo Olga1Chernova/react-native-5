@@ -1,12 +1,37 @@
-import { Text, StyleSheet, View, TouchableOpacity, TextInput, Image } from "react-native";
+import { Text, StyleSheet, View, TouchableOpacity, TextInput, Image, Keyboard, KeyboardAvoidingView } from "react-native";
 import { EvilIcons } from "@expo/vector-icons";
 import { Camera } from "expo-camera";
 import { useState, useEffect } from "react";
 import { Platform } from "react-native";
+import * as Location from "expo-location";
+import PostsScreen from "../nestedScreens/PostsScreen";
 
-const CreatePostsScreen = () => {
+const CreatePostsScreen = ({navigation}) => {
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState('');
+  const [title, setTitle] = useState('');
+  const [location, setLocation] = useState("");
+  const [isKeyboardShown, setIsKeyboardShown] = useState(false);
+  const [isFocus, setIsFocus] = useState({
+    title: false,
+    location: false,
+  });
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access location was denied");
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      const coords = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      };
+      setLocation(coords);
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -31,12 +56,23 @@ const CreatePostsScreen = () => {
       }
     })();
   }, []);
-  
+
+ 
   const takePhoto = async() => {
     if (camera && camera.takePictureAsync) {
       const photo = await camera.takePictureAsync();
       setPhoto(photo.uri);
     }
+  }
+
+  const keyboardHide = () => {
+    setIsKeyboardShown(false);
+    Keyboard.dismiss();
+  };
+
+  const reset = () => {
+    setTitle(""),
+    setLocation("")
   }
 
     return (
@@ -62,15 +98,53 @@ const CreatePostsScreen = () => {
             </TouchableOpacity>
           </Camera>
         </View>
-        <View style={styles.input_wrapper}>
-          <TextInput placeholder="Enter post name" style={styles.input} />
-        </View>
-        <View style={styles.input_wrapper}>
-          <TextInput placeholder="Enter post location" style={styles.input} />
-        </View>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.post_btn}>Post</Text>
-        </TouchableOpacity>
+        <KeyboardAvoidingView behavior={Platform.OS == "ios" ? "padding" : ""}>
+          <View style={styles.input_wrapper}>
+            <TextInput
+              placeholder="Enter post name"
+              style={styles.input}
+              value={title}
+              onFocus={() => {
+                setIsKeyboardShown(true);
+                setIsFocus({ ...isFocus, title: true });
+              }}
+              onBlur={() => {
+                setIsKeyboardShown(false);
+                Keyboard.dismiss();
+                setIsFocus({ ...isFocus, title: false });
+              }}
+              onChangeText={(value) => {
+                setTitle(value);
+              }}
+            />
+          </View>
+          <View style={styles.input_wrapper}>
+            <TextInput
+              placeholder="Enter post location"
+              style={styles.input}
+              value={location}
+              onFocus={() => {
+                setIsKeyboardShown(true);
+                setIsFocus({ ...isFocus, location: true });
+              }}
+              onBlur={() => {
+                setIsKeyboardShown(false);
+                Keyboard.dismiss();
+                setIsFocus({ ...isFocus, location: false });
+              }}
+              onChangeText={(value) =>
+                setLocation(value)
+              }
+            />
+          </View>
+          <TouchableOpacity style={styles.button} onPress={() => {
+            keyboardHide();
+            reset();
+            navigation.navigate("Posts", {photo});
+          }}>
+            <Text style={styles.post_btn}>Post</Text>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
       </View>
     );
 }
